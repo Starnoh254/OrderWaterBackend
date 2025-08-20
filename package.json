@@ -7,7 +7,8 @@
     "dev": "nodemon node server.js",
     "start": "node server.js",
     "migrate:prod": "npx prisma migrate deploy && npx prisma generate",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy:prod": "npm ci --omit=dev && npm run migrate:prod"
   },
   "keywords": [],
   "author": "",
