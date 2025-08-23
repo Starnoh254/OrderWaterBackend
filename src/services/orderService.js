@@ -20,6 +20,12 @@ class orderService {
 
     return order;
   }
+
+  // Get all orders
+  static async getAllOrders() {
+    const orders = await prisma.orders.findMany({ orderBy: { id: 'desc' } });
+    return orders;
+  }
 }
 
 module.exports = orderService;

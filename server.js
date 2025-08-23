@@ -3,9 +3,11 @@ const http = require('http');
 const morgan = require('morgan');
 const logger = require('./src/utils/logger');
 const errorHandler = require('./src/middlewares/errorHandler');
+// const cors = require('cors');
 
 const PORT = process.env.PORT || 5000;
 
+// app.use(cors());
 app.use(morgan('combined', {
     stream: {
         write: (message) => logger.info(message.trim())
