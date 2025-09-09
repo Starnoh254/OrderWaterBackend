@@ -2,11 +2,11 @@
 
 This is a reusable Node.js backend template designed to help you quickly spin up a backend project with the following features:
 
-* MySQL support (flexible to use other SQL databases like PostgreSQL, SQLite)
-* Authentication (Register, Login, JWT-based auth)
-* Testing (unit + integration)
-* API Documentation using Swagger
-* Modular and scalable folder structure
+- MySQL support (flexible to use other SQL databases like PostgreSQL, SQLite)
+- Authentication (Register, Login, JWT-based auth)
+- Testing (unit + integration)
+- API Documentation using Swagger
+- Modular and scalable folder structure
 
 ---
 
@@ -114,19 +114,19 @@ npx prisma migrate dev --name <name>
 `src/app.js`:
 
 ```js
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
 
-const authRoutes = require('./routes/auth.routes');
+const authRoutes = require("./routes/auth.routes");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/auth', authRoutes);
+app.use("/api/auth", authRoutes);
 
-app.get('/', (req, res) => res.send('API is running!'));
+app.get("/", (req, res) => res.send("API is running!"));
 
 module.exports = app;
 ```
@@ -134,7 +134,7 @@ module.exports = app;
 `server.js`:
 
 ```js
-const app = require('./src/app');
+const app = require("./src/app");
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
@@ -149,18 +149,18 @@ npm install swagger-ui-express
 Add to `app.js`:
 
 ```js
-const swaggerUi = require('swagger-ui-express');
-const swaggerDoc = require('./swagger.json');
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+const swaggerUi = require("swagger-ui-express");
+const swaggerDoc = require("./swagger.json");
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 ```
 
 ---
 
 ## 🔐 Auth Features
 
-* JWT-based login and registration
-* bcrypt password hashing
-* Token verification middleware
+- JWT-based login and registration
+- bcrypt password hashing
+- Token verification middleware
 
 ---
 
@@ -178,12 +178,13 @@ npm test
 
 Want to use PostgreSQL instead of MySQL?
 
-* Just change this line in `schema.prisma`:
+- Just change this line in `schema.prisma`:
 
   ```prisma
   provider = "postgresql"
   ```
-* Update your `.env` accordingly:
+
+- Update your `.env` accordingly:
 
   ```env
   DATABASE_URL="postgresql://user:password@localhost:5432/mydb"
@@ -194,6 +195,21 @@ Run:
 ```bash
 npx prisma migrate dev --name <name>
 ```
+
+---
+
+## 🛠️ Development Migrations (Dev)
+
+After cloning the project, run these before starting the server:
+
+```powershell
+npm install
+npx prisma generate
+npm run migrate:dev
+npm run dev
+```
+
+This ensures Prisma Client is generated and your local database schema is up to date.
 
 ---
 
@@ -267,13 +283,12 @@ This error occurs when your application tries to use Prisma Client (`@prisma/cli
 
 By following these steps, you ensure that Prisma Client is correctly initialized and your application can connect to the database without issues.
 
-
 ## 🔚 Summary
 
 This backend template will help you:
 
-* Save time
-* Reuse secure and tested code
-* Support multiple SQL databases
-* Document APIs
-* Write clean and scalable code
+- Save time
+- Reuse secure and tested code
+- Support multiple SQL databases
+- Document APIs
+- Write clean and scalable code

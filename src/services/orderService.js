@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const sendSMS = require('../utils/send');
 
 class orderService {
   // Create order; ensure phone is unique (as per schema)
@@ -17,6 +18,9 @@ class orderService {
     const order = await prisma.orders.create({
       data: { name, phone, house },
     });
+
+    const message = `New water order \nCustomer: ${order.name}\nPhone: ${order.phone}\nHouse: ${order.house}`;
+    sendSMS(message)
 
     return order;
   }
