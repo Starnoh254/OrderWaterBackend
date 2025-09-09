@@ -1,0 +1,108 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            echo "Starting automated deployment..."
+
+            # Navigate to project directory
+            cd /home/developer/OrderWaterBackend
+
+              # Create backup folder if it doesn't exist
+              mkdir -p /home/developer/backups
+
+              # Create backup of current deployment
+              BACKUP_NAME="backup-$(date +%Y%m%d-%H%M%S)"
+              BACKUP_DIR="/home/developer/backups"
+
+              echo "Creating backup: $BACKUP_NAME"
+
+              # Backup everything except node_modules
+              sudo rsync -a --exclude 'node_modules' ./ "${BACKUP_NAME}/"
+
+              # Compress and move to backup dir
+              sudo tar -czf "${BACKUP_DIR}/${BACKUP_NAME}.tar.gz" "${BACKUP_NAME}"
+              sudo rm -rf "${BACKUP_NAME}"  # remove uncompressed folder after tar
+
+
+            # Pull latest changes
+            git fetch origin
+            git reset --hard origin/main
+
+            # Setup Node.js environment - try multiple common paths
+            export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+
+            # Try to find node and npm
+            NODE_PATH=$(which node 2>/dev/null || find /usr -name "node" 2>/dev/null | head -1)
+            NPM_PATH=$(which npm 2>/dev/null || find /usr -name "npm" 2>/dev/null | head -1)
+
+            # If using Node Version Manager (nvm)
+            if [ -f ~/.nvm/nvm.sh ]; then
+              echo "Loading NVM..."
+              export NVM_DIR="$HOME/.nvm"
+              [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+              [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+              nvm use node 2>/dev/null || nvm use default 2>/dev/null || true
+            fi
+
+            # If using Node from snap
+            if [ -d /snap/node ]; then
+              export PATH="/snap/bin:$PATH"
+            fi
+
+            # Verify node and npm are available
+            echo "Node.js version: $(node --version 2>/dev/null || echo 'Node.js not found')"
+            echo "NPM version: $(npm --version 2>/dev/null || echo 'NPM not found')"
+
+            # Install dependencies and migrate the database
+            npm run deploy:prod
+
+            # Test nginx configuration
+            sudo nginx -t
+
+            # Reload PM2 
+            pm2 reload orderwater-backend
+
+            # Reload nginx if config is valid
+            if [ $? -eq 0 ]; then
+              sudo systemctl reload nginx
+              echo "✅ Deployment completed successfully!"
+              echo "🌐 Site updated at: $(date)"
+            else
+              echo "❌ Nginx configuration error! Rolling back..."
+              # Restore from latest backup if needed
+              LATEST_BACKUP=$(ls -t ${BACKUP_DIR}/backup-*.tar.gz | head -1)
+              if [ -n "$LATEST_BACKUP" ]; then
+              echo "Restoring from $LATEST_BACKUP..."
+              sudo tar -xzf $LATEST_BACKUP -C /home/developer/OrderWaterBackend --strip-components=1
+              pm2 reload orderwater-backend
+              sudo systemctl reload nginx
+              else
+              echo "⚠️ No backup found to roll back!"
+              fi
+
+            fi
+
+              # Clean up old backups (keep last 5)
+              sudo ls -t ${BACKUP_DIR}/backup-*.tar.gz | tail -n +6 | xargs sudo rm -f 2>/dev/null || true
+
+              echo "🚀 Deployment automation completed!"
