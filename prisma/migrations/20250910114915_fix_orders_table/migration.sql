@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `Orders` ADD COLUMN `amount` VARCHAR(191) NOT NULL DEFAULT '1L';
