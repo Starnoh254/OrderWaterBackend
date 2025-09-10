@@ -3,9 +3,9 @@ const orderService = require("../services/orderService");
 class orderController {
   // Create a new order
   static async createOrder(req, res) {
-    const { name, phone, house } = req.body;
+    const { name, phone, house , amount } = req.body;
     try {
-      const order = await orderService.createOrder({ name, phone, house });
+      const order = await orderService.createOrder({ name, phone, house , amount});
       res.status(201).json({ message: "Order created", order });
     } catch (err) {
       if (err.message === "Order already exists") {

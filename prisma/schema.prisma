@@ -20,6 +20,7 @@ model Orders {
   name    String 
   phone String 
   house String
+  amount String @default("1L")
   createdAt DateTime @default(now())
 }
 
